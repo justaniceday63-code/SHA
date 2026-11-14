@@ -1,0 +1,58 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+publish/
+
+# Native build output (per-compiler: native/build/<Config>/<compiler>/)
+native/build/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/mcp.json
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Test results and coverage
+[Tt]est[Rr]esult*/
+test-results.json
+*.trx
+*.coverage
+*.coveragexml
+TestResults/
+ui-test-artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+
+# MSIX packaging output
+AppPackages/
+BundleArtifacts/
+*.msix
+*.msixupload
+*.appx
+*.appxbundle
+*.appxupload
+
+# Logs
+[Ll]og/
+[Ll]ogs/
+*.log
+*.binlog
+
+# Local tooling indexes and state
+.repowise/
+.gitnexus/
+
+# Development certificate
+devcert.pfx

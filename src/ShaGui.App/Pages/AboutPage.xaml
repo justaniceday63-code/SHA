@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="ShaGui.App.Pages.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ShaGui.App.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="32,24,32,32" Spacing="16" MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="About" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
+                           Text="SHA Integrity &amp; Visualization Studio" />
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                           Text="A native Windows app: the SHA-1 and SHA-256 compression functions run in C, the interface is WinUI 3. Folder walking, manifests and history are managed." />
+            </StackPanel>
+
+            <InfoBar x:Name="HealthBar" IsOpen="True" IsClosable="False" />
+
+            <StackPanel Spacing="6">
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Third-party credits" />
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
+                           Text="SHAttered collision demo files: Marc Stevens (CWI Amsterdam), Elie Bursztein (Google), Pierre Karpman, Ange Albertini, Yarik Markov, Alex Petit Bianco, Clement Baisse." />
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
+                           Text="SHA reference implementations derived from the original SHA1_256 C sources; verified against Python hashlib and .NET cryptography." />
+            </StackPanel>
+
+            <StackPanel Spacing="6">
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Scope note" />
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Text="SHA-1 is shown for education and legacy verification. It is not collision-resistant; use SHA-256 when the digest must be trusted." />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

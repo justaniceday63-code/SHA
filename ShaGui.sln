@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{371E1B1C-1343-454F-9243-62AEF2B4F83D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaGui.Core", "src\ShaGui.Core\ShaGui.Core.csproj", "{7883D09D-F9A0-4EBD-883E-BCABCDB43DBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaGui.App", "src\ShaGui.App\ShaGui.App.csproj", "{7591987B-5B57-4612-899C-352234ABB560}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7883D09D-F9A0-4EBD-883E-BCABCDB43DBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7883D09D-F9A0-4EBD-883E-BCABCDB43DBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7883D09D-F9A0-4EBD-883E-BCABCDB43DBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7883D09D-F9A0-4EBD-883E-BCABCDB43DBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7591987B-5B57-4612-899C-352234ABB560}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{7591987B-5B57-4612-899C-352234ABB560}.Debug|Any CPU.Build.0 = Debug|x64
+		{7591987B-5B57-4612-899C-352234ABB560}.Release|Any CPU.ActiveCfg = Release|x64
+		{7591987B-5B57-4612-899C-352234ABB560}.Release|Any CPU.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7883D09D-F9A0-4EBD-883E-BCABCDB43DBB} = {371E1B1C-1343-454F-9243-62AEF2B4F83D}
+		{7591987B-5B57-4612-899C-352234ABB560} = {371E1B1C-1343-454F-9243-62AEF2B4F83D}
+	EndGlobalSection
+EndGlobal

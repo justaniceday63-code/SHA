@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ShaGui.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ShaGui.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

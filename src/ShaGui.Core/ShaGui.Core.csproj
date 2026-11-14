@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!--
+      The interop layer pins spans over native memory and copies the trace
+      array straight out of DLL-owned memory; both need unsafe blocks.
+    -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>ShaGui.Core</RootNamespace>
+    <Description>
+      Shared hashing core: P/Invoke over shaNative.dll, text/file/folder
+      hashing, deterministic manifests, archive handling and history.
+      Contains no UI code so it can be unit-tested headlessly.
+    </Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Where scripts/build-native.ps1 puts the shipping DLL (x64, MSVC). -->
+    <NativeBinDir>$(MSBuildThisFileDirectory)..\..\native\build\Release\msvc</NativeBinDir>
+    <NativeDll>$(NativeBinDir)\shaNative.dll</NativeDll>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Copy the native DLL next to the managed assembly so P/Invoke finds
+      it without PATH tricks. Flows transitively to referencing projects
+      (the WinUI app and the test project) via GetCopyToOutputDirectoryItems.
+    -->
+    <None Include="$(NativeDll)"
+          Link="shaNative.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false"
+          Condition="Exists('$(NativeDll)')" />
+  </ItemGroup>
+
+  <!-- Fail early with an actionable message instead of DllNotFound at runtime. -->
+  <Target Name="EnsureNativeDllExists" BeforeTargets="Build" Condition="!Exists('$(NativeDll)')">
+    <Error Text="shaNative.dll not found at $(NativeDll). Build it first: powershell -ExecutionPolicy Bypass -File scripts\build-native.ps1 -Target dll" />
+  </Target>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ShaGui.Core.Tests" />
+    <InternalsVisibleTo Include="Probe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Run history and settings live in a local SQLite file. The bundled
+      SQLitePCLRaw provider carries the native e_sqlite3 library, so no
+      machine-wide SQLite install is required.
+    -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
+  </ItemGroup>
+
+</Project>

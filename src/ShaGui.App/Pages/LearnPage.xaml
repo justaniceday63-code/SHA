@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="ShaGui.App.Pages.LearnPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ShaGui.App.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="24,21,24,21" Spacing="14" MaxWidth="1400" HorizontalAlignment="Left">
+
+            <!-- Header: cap emoji + title, then the per-algorithm subtitle. -->
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="🎓" FontSize="26" VerticalAlignment="Center" />
+                <TextBlock x:Name="PageTitle" Style="{StaticResource TitleTextBlockStyle}"
+                           VerticalAlignment="Center" Text="Learn SHA-1" />
+            </StackPanel>
+            <TextBlock x:Name="PageSubtitle" Style="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       Text="Explore the 80 rounds of SHA-1 compression. See how each step updates the registers A, B, C, D and E." />
+
+            <SelectorBar x:Name="AlgoBar" AutomationProperties.AutomationId="AlgoBar"
+                         SelectionChanged="OnAlgoChanged">
+                <SelectorBarItem Text="SHA-1 (80 rounds)" IsSelected="True" Tag="sha1" />
+                <SelectorBarItem Text="SHA-256 (64 rounds)" Tag="sha256" />
+            </SelectorBar>
+
+            <!-- Message input. Tracing is automatic: the constructor, every
+                 TextChanged and algo/block changes all re-trace, so there is
+                 no Trace button. TextChanged must stay after Text: while
+                 InitializeComponent applies Text="abc" the handler is not
+                 attached yet, so the initial value never triggers a
+                 premature trace. -->
+            <TextBox x:Name="TraceInput" AutomationProperties.AutomationId="TraceInput"
+                     Text="abc" TextChanged="OnTraceInputChanged" />
+
+            <!-- Info bar: original message, digest, blocks and current block
+                 in one card with icon segments. -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,10">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="1.6*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Grid (not a horizontal StackPanel): a StackPanel would
+                         measure its children with infinite width, so the text
+                         below could never wrap/trim and would clip instead. -->
+                    <Grid ColumnSpacing="10" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="📄" FontSize="20" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Original message" />
+                            <TextBlock x:Name="InfoMessage" TextTrimming="CharacterEllipsis"
+                                       IsTextSelectionEnabled="True" Text="(empty message)" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Column="1" Width="1" VerticalAlignment="Stretch"
+                            Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <Grid Grid.Column="2" ColumnSpacing="10" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="🔐" FontSize="20" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock x:Name="InfoDigestLabel"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="SHA-1 digest" />
+                            <TextBox x:Name="TraceDigest" AutomationProperties.AutomationId="TraceDigest"
+                                     IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap"
+                                     Background="Transparent" BorderThickness="0" Padding="0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Column="3" Width="1" VerticalAlignment="Stretch"
+                            Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="🧊" FontSize="20" VerticalAlignment="Center" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Blocks" />
+                            <TextBlock x:Name="InfoBlocks" Text="1" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Column="5" Width="1" VerticalAlignment="Stretch"
+                            Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                    <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="10"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="👁" FontSize="20" VerticalAlignment="Center" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Current block" />
+                            <ComboBox x:Name="BlockSelector"
+                                      AutomationProperties.AutomationId="BlockSelector"
+                                      MinWidth="72" SelectionChanged="OnBlockChanged" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <InfoBar x:Name="TraceError" AutomationProperties.AutomationId="TraceError"
+                     IsOpen="False" IsClosable="False" />
+
+            <!-- Round navigation: prev/next chevrons, a direct round picker
+                 with the round count, and a progress bar with percentage. -->
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="BtnPrevRound" AutomationProperties.AutomationId="BtnPrevRound"
+                        Padding="10,6" VerticalAlignment="Center" Click="OnPrevRound"
+                        AutomationProperties.Name="Previous round"
+                        ToolTipService.ToolTip="Previous round">
+                    <FontIcon Glyph="&#xE76B;" FontSize="16" />
+                </Button>
+                <Button x:Name="BtnNextRound" AutomationProperties.AutomationId="BtnNextRound"
+                        Grid.Column="1" Padding="10,6" VerticalAlignment="Center" Click="OnNextRound"
+                        AutomationProperties.Name="Next round"
+                        ToolTipService.ToolTip="Next round">
+                    <FontIcon Glyph="&#xE76C;" FontSize="16" />
+                </Button>
+                <TextBlock Grid.Column="2" Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Center" Margin="6,0,4,0" Text="Round:" />
+                <ComboBox x:Name="RoundSelect" AutomationProperties.AutomationId="RoundSelect"
+                          Grid.Column="3" MinWidth="72" VerticalAlignment="Center"
+                          SelectionChanged="OnRoundSelectChanged" />
+                <TextBlock x:Name="RoundTotal" Grid.Column="4" VerticalAlignment="Center"
+                           Margin="4,0,0,0" Text="/ 80" />
+                <ProgressBar x:Name="RoundBar" Grid.Column="5" Minimum="0" Maximum="79"
+                             Value="0" Height="6" Margin="12,0" VerticalAlignment="Center" />
+                <TextBlock x:Name="RoundPercent" Grid.Column="6" MinWidth="40"
+                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                           VerticalAlignment="Center" Text="0%" />
+            </Grid>
+
+            <!-- Main area: overview table and detail card. Wide pages keep
+                 them side by side; narrow ones stack the detail card below
+                 the table (ApplyResponsiveLayout in code-behind). -->
+            <Grid x:Name="MainGrid" ColumnSpacing="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Caption shared by both tables: the rows are AFTER-states;
+                     the detail card shows input and output for one round. -->
+                <StackPanel Grid.Column="0" Spacing="8">
+                    <TextBlock AutomationProperties.AutomationId="RoundTableCaption"
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Text="Each row is the register state after that round completed. Select a row to see its full calculation in the detail panel — the input state it starts from, the operands (W, K, f / T1, T2), and the update to the output state." />
+
+                    <!-- SHA-1: one row per round, 1–80, showing only the working
+                         registers A–E after the round (all calculation operands
+                         live in the detail card). The left accent bar marks the
+                         20-round function range. Columns are sized so all five
+                         registers fit beside the detail card without scrolling. -->
+                    <ListView x:Name="RoundTable1" AutomationProperties.AutomationId="RoundTable"
+                              MaxHeight="560" SelectionMode="Single" SelectionChanged="OnRoundSelected"
+                              HorizontalContentAlignment="Left"
+                              ScrollViewer.HorizontalScrollMode="Enabled"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListView.Header>
+                            <Grid Padding="0,2,0,6" ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3" />
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Round" />
+                                <TextBlock Grid.Column="2" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="A" />
+                                <TextBlock Grid.Column="3" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="B" />
+                                <TextBlock Grid.Column="4" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="C" />
+                                <TextBlock Grid.Column="5" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="D" />
+                                <TextBlock Grid.Column="6" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="E" />
+                            </Grid>
+                        </ListView.Header>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:RoundRow">
+                                <Grid Padding="0,3" ColumnSpacing="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3" />
+                                        <ColumnDefinition Width="36" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="3" CornerRadius="1.5"
+                                            HorizontalAlignment="Center"
+                                            Background="{x:Bind Accent}" />
+                                    <TextBlock Grid.Column="1" FontFamily="Consolas" Text="{x:Bind Round}" />
+                                    <TextBlock Grid.Column="2" FontFamily="Consolas" Text="{x:Bind A}" />
+                                    <TextBlock Grid.Column="3" FontFamily="Consolas" Text="{x:Bind B}" />
+                                    <TextBlock Grid.Column="4" FontFamily="Consolas" Text="{x:Bind C}" />
+                                    <TextBlock Grid.Column="5" FontFamily="Consolas" Text="{x:Bind D}" />
+                                    <TextBlock Grid.Column="6" FontFamily="Consolas" Text="{x:Bind E}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!-- SHA-256: same structure with 64 rounds, showing only the
+                         working registers a–h after the round. -->
+                    <ListView x:Name="RoundTable256" AutomationProperties.AutomationId="RoundTable"
+                              MaxHeight="560" SelectionMode="Single" SelectionChanged="OnRoundSelected"
+                              Visibility="Collapsed"
+                              HorizontalContentAlignment="Left"
+                              ScrollViewer.HorizontalScrollMode="Enabled"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListView.Header>
+                            <Grid Padding="0,2,0,6" ColumnSpacing="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3" />
+                                    <ColumnDefinition Width="36" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="64" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="1" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Round" />
+                                <TextBlock Grid.Column="2" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="a" />
+                                <TextBlock Grid.Column="3" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="b" />
+                                <TextBlock Grid.Column="4" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="c" />
+                                <TextBlock Grid.Column="5" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="d" />
+                                <TextBlock Grid.Column="6" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="e" />
+                                <TextBlock Grid.Column="7" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="f" />
+                                <TextBlock Grid.Column="8" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="g" />
+                                <TextBlock Grid.Column="9" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="h" />
+                            </Grid>
+                        </ListView.Header>
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="local:RoundRow256">
+                                <Grid Padding="0,3" ColumnSpacing="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3" />
+                                        <ColumnDefinition Width="36" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                        <ColumnDefinition Width="64" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="3" CornerRadius="1.5"
+                                            HorizontalAlignment="Center"
+                                            Background="{x:Bind Accent}" />
+                                    <TextBlock Grid.Column="1" FontFamily="Consolas" Text="{x:Bind Round}" />
+                                    <TextBlock Grid.Column="2" FontFamily="Consolas" Text="{x:Bind A}" />
+                                    <TextBlock Grid.Column="3" FontFamily="Consolas" Text="{x:Bind B}" />
+                                    <TextBlock Grid.Column="4" FontFamily="Consolas" Text="{x:Bind C}" />
+                                    <TextBlock Grid.Column="5" FontFamily="Consolas" Text="{x:Bind D}" />
+                                    <TextBlock Grid.Column="6" FontFamily="Consolas" Text="{x:Bind E}" />
+                                    <TextBlock Grid.Column="7" FontFamily="Consolas" Text="{x:Bind F}" />
+                                    <TextBlock Grid.Column="8" FontFamily="Consolas" Text="{x:Bind G}" />
+                                    <TextBlock Grid.Column="9" FontFamily="Consolas" Text="{x:Bind H}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+
+                <!-- Detail card for the selected round: Round N header with the
+                     phase badge, then sections A (input state), B (operands),
+                     C (equations) and D (register update → output state). The
+                     four phase segments are SHA-1 only (20-round ranges). -->
+                <Border x:Name="DetailHost" Grid.Column="1" Width="420"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="16,14">
+                    <StackPanel Spacing="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="DetailAccentBar" Width="4" CornerRadius="2"
+                                    Margin="0,2,10,2" VerticalAlignment="Stretch"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}" />
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock x:Name="DetailTitle"
+                                           Style="{StaticResource SubtitleTextBlockStyle}"
+                                           Text="Round 1" />
+                                <TextBlock x:Name="DetailKLine"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="K = 5A827999" />
+                            </StackPanel>
+                            <Border x:Name="PhaseBadge" Grid.Column="2" CornerRadius="10"
+                                    Padding="10,3" VerticalAlignment="Center"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                    BorderThickness="1">
+                                <TextBlock x:Name="PhaseBadgeText"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           FontWeight="SemiBold"
+                                           Text="Function 1 (1–20)" />
+                            </Border>
+                        </Grid>
+
+                        <Grid x:Name="PhaseStrip" ColumnSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="PhaseSeg0" CornerRadius="4" Padding="6,4"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1">
+                                <TextBlock x:Name="PhaseSegText0" Text="Rounds 1–20" FontSize="12" TextAlignment="Center" />
+                            </Border>
+                            <Border x:Name="PhaseSeg1" Grid.Column="1" CornerRadius="4" Padding="6,4"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1">
+                                <TextBlock x:Name="PhaseSegText1" Text="Rounds 21–40" FontSize="12" TextAlignment="Center" />
+                            </Border>
+                            <Border x:Name="PhaseSeg2" Grid.Column="2" CornerRadius="4" Padding="6,4"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1">
+                                <TextBlock x:Name="PhaseSegText2" Text="Rounds 41–60" FontSize="12" TextAlignment="Center" />
+                            </Border>
+                            <Border x:Name="PhaseSeg3" Grid.Column="3" CornerRadius="4" Padding="6,4"
+                                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1">
+                                <TextBlock x:Name="PhaseSegText3" Text="Rounds 61–80" FontSize="12" TextAlignment="Center" />
+                            </Border>
+                        </Grid>
+                        <TextBlock x:Name="PhaseLabel" Style="{StaticResource CaptionTextBlockStyle}"
+                                   TextWrapping="Wrap" />
+
+                        <!-- SHA-1 detail -->
+                        <StackPanel x:Name="DetailPanel1" Spacing="10"
+                                    AutomationProperties.AutomationId="DetailPanel">
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="A" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="DetailStateHeader1"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Input register state before round 1" />
+                                </StackPanel>
+                                <!-- No AutomationId here: panels have no UIA peer, so SetRegisterChips
+                                     mirrors the state onto a hidden readout TextBlock that carries it. -->
+                                <Grid x:Name="DetailState1" ColumnSpacing="8" RowSpacing="6" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="B" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center" Text="Calculation components" />
+                                </StackPanel>
+                                <TextBlock x:Name="DetailComponents1" TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="C" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center" Text="Main equation" />
+                                </StackPanel>
+                                <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        CornerRadius="6" Padding="12,10">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock x:Name="EqSym1" FontFamily="Consolas"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqSub1" FontFamily="Consolas"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqRes1" FontFamily="Consolas"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="D" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Register update (after round)" />
+                                </StackPanel>
+                                <TextBlock x:Name="DetailUpdate1" TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" />
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="The after-values above are the input state of the next round." />
+                            </StackPanel>
+
+                            <!-- Final round only: the feed-forward step that
+                                 turns the registers into the digest. -->
+                            <StackPanel x:Name="FinalStepPanel1" Spacing="6"
+                                        Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="E" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Final step: combine all registers (after round 80)" />
+                                </StackPanel>
+                                <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        CornerRadius="6" Padding="12,10">
+                                    <TextBlock x:Name="FinalStepText1" FontFamily="Consolas"
+                                               TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                </Border>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="Each register is added to the value it entered the block with (the initial values for a single-block message); concatenated, the results are this block's output — the digest for the last block." />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- SHA-256 detail (mirrors the SHA-1 panel with 8 registers and T1/T2) -->
+                        <StackPanel x:Name="DetailPanel2" Spacing="10" Visibility="Collapsed"
+                                    AutomationProperties.AutomationId="DetailPanel">
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="A" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock x:Name="DetailStateHeader2"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Input register state before round 1" />
+                                </StackPanel>
+                                <Grid x:Name="DetailState2" ColumnSpacing="8" RowSpacing="6" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="B" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center" Text="Calculation components" />
+                                </StackPanel>
+                                <TextBlock x:Name="DetailComponents2" TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="C" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Main calculations (T1 and T2)" />
+                                </StackPanel>
+                                <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        CornerRadius="6" Padding="12,10">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock x:Name="EqSymT1" FontFamily="Consolas"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqSubT1" FontFamily="Consolas"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqResT1" FontFamily="Consolas"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqSymT2" FontFamily="Consolas"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqSubT2" FontFamily="Consolas"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                        <TextBlock x:Name="EqResT2" FontFamily="Consolas"
+                                                   FontWeight="SemiBold"
+                                                   TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="D" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Register update (after round)" />
+                                </StackPanel>
+                                <TextBlock x:Name="DetailUpdate2" TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" />
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="The after-values above are the input state of the next round." />
+                            </StackPanel>
+
+                            <!-- Final round only: the feed-forward step that
+                                 turns the registers into the digest. -->
+                            <StackPanel x:Name="FinalStepPanel2" Spacing="6"
+                                        Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border Width="22" Height="22" CornerRadius="11"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                        <TextBlock Text="E" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               VerticalAlignment="Center"
+                                               Text="Final step: combine all registers (after round 64)" />
+                                </StackPanel>
+                                <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                        CornerRadius="6" Padding="12,10">
+                                    <TextBlock x:Name="FinalStepText2" FontFamily="Consolas"
+                                               TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                </Border>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="Each register is added to the value it entered the block with (the initial values for a single-block message); concatenated, the results are this block's output — the digest for the last block." />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Shared footer nav: visible for both algorithms, so
+                             RoundProgress never sits in a collapsed panel. -->
+                        <Grid ColumnSpacing="8" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="BtnDetailPrev" AutomationProperties.AutomationId="BtnDetailPrev"
+                                    VerticalAlignment="Center" Click="OnPrevRound">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE76B;" FontSize="14" />
+                                    <TextBlock Text="Previous" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock x:Name="RoundProgress"
+                                       AutomationProperties.AutomationId="RoundProgress"
+                                       Grid.Column="1"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       VerticalAlignment="Center" TextAlignment="Center"
+                                       Text="Round 1 / 80" />
+                            <Button x:Name="BtnDetailNext" AutomationProperties.AutomationId="BtnDetailNext"
+                                    Grid.Column="2" VerticalAlignment="Center"
+                                    Style="{StaticResource AccentButtonStyle}" Click="OnNextRound">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Next" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE76C;" FontSize="14" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

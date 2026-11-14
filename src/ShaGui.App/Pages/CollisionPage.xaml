@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="ShaGui.App.Pages.CollisionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:ShaGui.App.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer>
+        <StackPanel Padding="32,24,32,32" Spacing="16" MaxWidth="1100" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="SHAttered collision demo" />
+
+            <InfoBar IsOpen="True" IsClosable="False" Severity="Informational"
+                     Title="Different files, identical SHA-1"
+                     Message="In 2017 the CWI Amsterdam and Google research teams published two PDFs with different contents but the same SHA-1 digest. This app only hashes the bundled files — it cannot and will not generate a collision." />
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="shattered-1.pdf" />
+                        <TextBlock x:Name="LeftSize" Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button AutomationProperties.AutomationId="BtnViewLeft"
+                                    Click="OnViewLeft">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8A5;" FontSize="14" />
+                                    <TextBlock Text="View PDF" />
+                                </StackPanel>
+                            </Button>
+                            <Button AutomationProperties.AutomationId="BtnHashLeft"
+                                    Click="OnHashLeft">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE928;" FontSize="14" />
+                                    <TextBlock Text="Hash this file…" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Hash results: hidden until "Hash this file… is
+                             pressed for THIS card. Labels sit left, values
+                             right in monospace so long digests wrap inside
+                             the card instead of stretching it. -->
+                        <StackPanel x:Name="LeftHashSection" Visibility="Collapsed">
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+                            <Grid ColumnSpacing="12" Padding="0,8,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="SHA-1"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" x:Name="LeftSha1"
+                                           FontFamily="Consolas"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right" />
+                            </Grid>
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+                            <Grid ColumnSpacing="12" Padding="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="SHA-256"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" x:Name="LeftSha256"
+                                           FontFamily="Consolas"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="20">
+                    <StackPanel Spacing="8">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="shattered-2.pdf" />
+                        <TextBlock x:Name="RightSize" Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button AutomationProperties.AutomationId="BtnViewRight"
+                                    Click="OnViewRight">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8A5;" FontSize="14" />
+                                    <TextBlock Text="View PDF" />
+                                </StackPanel>
+                            </Button>
+                            <Button AutomationProperties.AutomationId="BtnHashRight"
+                                    Click="OnHashRight">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE928;" FontSize="14" />
+                                    <TextBlock Text="Hash this file…" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Mirror of the left card's hash section; kept
+                             identical so both cards stay aligned whether or
+                             not either has been hashed. -->
+                        <StackPanel x:Name="RightHashSection" Visibility="Collapsed">
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+                            <Grid ColumnSpacing="12" Padding="0,8,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="SHA-1"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" x:Name="RightSha1"
+                                           FontFamily="Consolas"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right" />
+                            </Grid>
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+                            <Grid ColumnSpacing="12" Padding="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="SHA-256"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" x:Name="RightSha256"
+                                           FontFamily="Consolas"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           TextWrapping="Wrap"
+                                           TextAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       Text="Files bundled for education from shattered.io. Credit: Marc Stevens (CWI Amsterdam), Elie Bursztein (Google), Pierre Karpman, Ange Albertini, Yarik Markov, Alex Petit Bianco, Clement Baisse." />
+
+            <InfoBar x:Name="DemoStatus" AutomationProperties.AutomationId="DemoStatus"
+                     IsOpen="False" IsClosable="False" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>
