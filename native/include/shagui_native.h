@@ -1,7 +1,7 @@
 /*
  * shagui_native.h — public C ABI of shaNative.dll
  *
- * SHA Integrity & Visualization Studio — native backend.
+ * SHA visualization — native backend.
  *
  * Rules for this boundary (see docs/NATIVE_API.md):
  *   - Plain C only. No C++ types, no exceptions, no STL, no callbacks

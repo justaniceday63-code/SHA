@@ -12,12 +12,12 @@
   <Identity
     Name="CE990764-6C1B-434A-A303-7E8ABD7C28DF"
     Publisher="CN=AppPublisher"
-    Version="1.0.0.0" />
+    Version="1.0.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="CE990764-6C1B-434A-A303-7E8ABD7C28DF" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>ShaGui.App</DisplayName>
+    <DisplayName>SHA visualization</DisplayName>
     <PublisherDisplayName>AppPublisher</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <uap10:PackageIntegrity>
@@ -39,8 +39,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="ShaGui.App"
-        Description="ShaGui.App"
+        DisplayName="SHA visualization"
+        Description="SHA visualization"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">

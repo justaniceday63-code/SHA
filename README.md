@@ -1,4 +1,4 @@
-# SHA Integrity & Visualization Studio
+# SHA visualization
 
 Ứng dụng Windows desktop cho việc kiểm tra tính toàn vẹn của file và xem
 SHA-1 / SHA-256 thực sự hoạt động như thế nào.

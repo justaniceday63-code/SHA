@@ -114,7 +114,7 @@ static void test_file_matches_memory(void) {
     printf("  file vs memory\n");
 
     static const uint8_t payload[] =
-        "SHA Integrity & Visualization Studio — file layer test.\n"
+        "SHA visualization — file layer test.\n"
         "Xin chào Việt Nam: đường dẫn không dấu cũng phải hoạt động.";
 
     char path[600];

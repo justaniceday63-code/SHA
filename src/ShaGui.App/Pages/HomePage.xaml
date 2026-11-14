@@ -12,7 +12,7 @@
         <StackPanel Padding="32,24,32,32" Spacing="20" MaxWidth="900" HorizontalAlignment="Left">
             <StackPanel Spacing="6">
                 <TextBlock Style="{StaticResource TitleTextBlockStyle}"
-                           Text="SHA Integrity &amp; Visualization Studio" />
+                           Text="SHA visualization" />
                 <TextBlock Style="{StaticResource BodyTextBlockStyle}"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                            TextWrapping="Wrap"

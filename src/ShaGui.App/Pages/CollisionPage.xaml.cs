@@ -18,6 +18,13 @@ public sealed partial class CollisionPage : Page
     private string? _leftPath;
     private string? _rightPath;
 
+    // SHA-1 digest each side produced once it was hashed successfully
+    // (null until then, and after a failed hash). The verdict claims
+    // something about BOTH files, so these plus both revealed sections
+    // are what unlock DemoStatus — see UpdateCollisionBanner.
+    private string? _leftSha1Hex;
+    private string? _rightSha1Hex;
+
     public CollisionPage()
     {
         InitializeComponent();
@@ -45,17 +52,20 @@ public sealed partial class CollisionPage : Page
     }
 
     // The hash section starts collapsed; pressing this card's button reveals
-    // it and runs the same hash path as before (display-only change).
+    // it and runs the same hash path as before, then lets the verdict
+    // reconsider whether both sides are on screen now.
     private async void OnHashLeft(object sender, RoutedEventArgs e)
     {
         LeftHashSection.Visibility = Visibility.Visible;
-        await HashFileAsync(_leftPath, LeftSha1, LeftSha256);
+        _leftSha1Hex = await HashFileAsync(_leftPath, LeftSha1, LeftSha256);
+        UpdateCollisionBanner();
     }
 
     private async void OnHashRight(object sender, RoutedEventArgs e)
     {
         RightHashSection.Visibility = Visibility.Visible;
-        await HashFileAsync(_rightPath, RightSha1, RightSha256);
+        _rightSha1Hex = await HashFileAsync(_rightPath, RightSha1, RightSha256);
+        UpdateCollisionBanner();
     }
 
     private async void OnViewLeft(object sender, RoutedEventArgs e) => await ViewPdfAsync(_leftPath, "shattered-1.pdf");
@@ -112,37 +122,74 @@ public sealed partial class CollisionPage : Page
         }
     }
 
+    // Pre-fills both digest cells on load. The sections stay collapsed and
+    // UpdateCollisionBanner refuses to speak until both are revealed, so
+    // this alone never raises the banner.
     private void HashBoth()
     {
-        _ = HashFileAsync(_leftPath, LeftSha1, LeftSha256);
-        _ = HashFileAsync(_rightPath, RightSha1, RightSha256);
+        _ = HashLeftAsync();
+        _ = HashRightAsync();
     }
 
-    private async Task HashFileAsync(string? path, TextBlock sha1Block, TextBlock sha256Block)
+    private async Task HashLeftAsync()
+    {
+        _leftSha1Hex = await HashFileAsync(_leftPath, LeftSha1, LeftSha256);
+        UpdateCollisionBanner();
+    }
+
+    private async Task HashRightAsync()
+    {
+        _rightSha1Hex = await HashFileAsync(_rightPath, RightSha1, RightSha256);
+        UpdateCollisionBanner();
+    }
+
+    /// <summary>
+    /// Hashes one file into the two digest cells and returns its SHA-1 hex,
+    /// or null when the file could not be hashed — the caller records which
+    /// side has a real digest.
+    /// </summary>
+    private async Task<string?> HashFileAsync(string? path, TextBlock sha1Block, TextBlock sha256Block)
     {
         if (path is null)
         {
-            return;
+            return null;
         }
 
         var sha1 = await ShaHasher.HashFileAsync(path, ShaAlgo.Sha1);
         var sha256 = await ShaHasher.HashFileAsync(path, ShaAlgo.Sha256);
 
         // The algorithm labels are static left-column TextBlocks in XAML now,
-        // so the value cells carry only the digest (or the error). Everything
-        // below — the ExpectedSha1 comparison and the comparison message —
-        // is unchanged.
+        // so the value cells carry only the digest (or the error). The
+        // ExpectedSha1 comparison lives in UpdateCollisionBanner, which owns
+        // the verdict.
         sha1Block.Text = sha1.Success ? sha1.Hex : $"error: {sha1.Status}";
         sha256Block.Text = sha256.Success ? sha256.Hex : $"error: {sha256.Status}";
 
-        if (sha1.Success && sha1.Hex == ExpectedSha1)
+        return sha1.Success ? sha1.Hex : null;
+    }
+
+    /// <summary>
+    /// Raises the collision verdict, but only once BOTH files have been
+    /// hashed on screen: the message asserts something about two files, so
+    /// one revealed section — or the hidden pre-fill — is not enough.
+    /// </summary>
+    private void UpdateCollisionBanner()
+    {
+        if (LeftHashSection.Visibility != Visibility.Visible ||
+            RightHashSection.Visibility != Visibility.Visible ||
+            _leftSha1Hex is null || _rightSha1Hex is null)
+        {
+            return;
+        }
+
+        if (_leftSha1Hex == ExpectedSha1 && _rightSha1Hex == ExpectedSha1)
         {
             DemoStatus.Severity = InfoBarSeverity.Success;
             DemoStatus.Title = "Both files report the published SHA-1 collision digest";
             DemoStatus.Message = $"{ExpectedSha1} — while the SHA-256 digests differ.";
             DemoStatus.IsOpen = true;
         }
-        else if (sha1.Success)
+        else
         {
             DemoStatus.Severity = InfoBarSeverity.Warning;
             DemoStatus.Title = "Unexpected SHA-1 digest";

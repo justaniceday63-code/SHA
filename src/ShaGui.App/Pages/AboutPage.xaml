@@ -14,7 +14,7 @@
 
             <StackPanel Spacing="4">
                 <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
-                           Text="SHA Integrity &amp; Visualization Studio" />
+                           Text="SHA visualization" />
                 <TextBlock Style="{StaticResource BodyTextBlockStyle}"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                            Text="A native Windows app: the SHA-1 and SHA-256 compression functions run in C, the interface is WinUI 3. Folder walking, manifests and history are managed." />

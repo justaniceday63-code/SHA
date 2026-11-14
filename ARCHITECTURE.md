@@ -1,6 +1,6 @@
 # Architecture
 
-SHA Integrity & Visualization Studio is three layers with one hard boundary
+SHA visualization is three layers with one hard boundary
 between them: **C owns the cryptography, C# owns everything else, and the
 boundary between them is a frozen ABI.**
 
